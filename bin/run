@@ -1,0 +1,39 @@
+#!/bin/bash 
+
+cd "$(dirname "$0")"
+cd ../
+make
+
+echo -e "bin/c1c test/test1"
+bin/c1c test/test1.c1
+as --32 test/test1.c1.out -o test/test1.o
+ld -melf_i386 test/test1.o -o test/build/test1
+
+test/build/test1
+echo $?
+echo -e "the output is the result of 'test1.c1'"
+echo -e "please press any key to continue:"
+read wt
+
+echo -e "bin/c1c test/test2"
+bin/c1c test/test2.c1
+as --32 test/test2.c1.out -o test/test2.o
+ld -melf_i386 test/test2.o -o test/build/test2
+test/build/test2
+echo $?
+echo -e "the output is the result of 'test2.c1'"
+echo -e "please press any key to continue:"
+read wt
+
+
+echo -e "bin/c1c test/test3"
+bin/c1c test/test3.c1
+as --32 test/test3.c1.out -o test/test3.o
+ld -melf_i386 test/test3.o -o test/build/test3
+test/build/test3
+echo $?
+echo -e "the output is the result of 'test3.c1'"
+echo -e "please press any key to end"
+cd test
+rm *.o
+read wt

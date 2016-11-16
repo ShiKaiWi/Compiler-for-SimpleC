@@ -1,0 +1,15 @@
+int mul(int a[],int b){
+	int i,m;
+	i = 0;
+	m = 1;
+	while(i<b){
+		m =m*a[i];
+		i = i+1;
+	}
+	return m;
+}
+
+int main(){
+	const int a[4]={2,3,4,6};
+	return mul(a,4);
+}

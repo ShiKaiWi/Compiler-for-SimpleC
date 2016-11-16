@@ -1,0 +1,17 @@
+int arraymul(int a[],int la,int b[],int lb){
+	int i,s;
+	s = 0;
+	i = 0;
+	while(i<la){
+		if(i>=lb) break;
+		s = s+a[i]*b[i];
+		i = i+1;	
+	}
+	return s;		
+}
+
+int main(){
+	const int a[3] = {2,3,4};
+	const int b[5] = {3,2,4,3};
+	return arraymul(a,3,b,5);
+}

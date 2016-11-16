@@ -1,0 +1,12 @@
+#assembly file under the test dirctory
+test/*.c1.out
+
+#bison's output file
+src/c1c.tab.*
+
+#flex's output file
+src/c1c.lex.c
+
+#binary files
+./bin/c1c
+./test/build/*

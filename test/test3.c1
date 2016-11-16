@@ -1,0 +1,11 @@
+
+int fibb(int a){
+	if(a==1)return 1;
+	else return a*fibb(a-1);
+}
+int main(){
+	const int a[4] = {3,22,3,4};
+	return fibb(fibb(a[0])-1);
+}
+
+
