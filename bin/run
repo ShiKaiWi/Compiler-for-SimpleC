@@ -3,6 +3,7 @@
 cd "$(dirname "$0")"
 cd ../
 make
+mkdir test/build
 
 echo -e "bin/c1c test/test1"
 bin/c1c test/test1.c1
