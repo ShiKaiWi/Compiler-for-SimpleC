@@ -1,6 +1,6 @@
 ## Compiler-for-Simple-C
 
-This is a compliler for a simple C language named after **C1** below (which is a simple form of real C and does not contain the pointer, struct and high dimensions array features).
+This is a compliler for a simple C language named after `C1` below (which is a simple form of real C and does not contain the pointer, struct and multi-dimension array features).
 
 ## Dependency
 
@@ -17,17 +17,17 @@ $ sudo apt install flex
 
 #### Introduction
 
-There are two source codes in this project,which are named as `C1.y` and `C1.lex` and placed in the "config" directory and four source codes, named as `ast.c`,`error.c`,`list.c` and `symtab.c`, placed in the "src" directory.
+There are two source files in this project, which are named as `C1.y` and `C1.lex` and placed in the "config" directory and four source files, named as `ast.c`,`error.c`,`list.c` and `symtab.c`, placed in the "src" directory.
 
-And after `making` there will be three another source codes -- `c1c.lex.cc`, `c1c.tab.h` and `c1c.tab.c`, which include lexical analyzer and syntax analyzer. Also there will be one executable file named `c1c`,which can analyze programme written in C1 language,create AST and then translate the source code into AT&T assembly language that can be `ld`ed and executed under Ubuntu OS. 
-    
+And after `make` there will be three more source files -- `c1c.lex.cc`, `c1c.tab.h` and `c1c.tab.c` and they are lexical analyzer and syntax analyzer. Also there will be one executable file named `c1c`, which can analyze programme written in `C1` language, create `AST` and then translate the source code into `AT&T` assembly language that can be `ld`ed and executed under Ubuntu OS.
+
 #### Source Tree
 
-This project distribution includes the following files and directories:
+This project includes the following files and directories:
 
 ```
 README.md	this file
-makefile	a makefile to build c1c.lex.cc, c1c.tab.h, c1c.tab.c and c1c		 	
+makefile	a makefile to build c1c.lex.cc, c1c.tab.h, c1c.tab.c and c1c
 config		directory storing C1.y and C1.lex
 src			directory storing source files
 include		directory storing header files
@@ -41,27 +41,19 @@ bin			directory storing execution/objective files
 
 #### Building
 
-   	Enter: ./
+```bash
+# Enter: ./
+make
+```
 
-   	$ make
+#### Running
+```bash
+# Enter: ./
+bin/c1c "infilename" # infilename means file written in C1 language
+```
+or
+```
+bin.c1c -o "outfilename" "infilename" # outputfile means file to be stored for results.if not existing, it will be created)
+```
+And then you can use `as` and `ld`(**run `as` with --32 and `ld` with -melf_i386 if your OS is 64-bit Ubuntu**) to create an executable file and then execute it.
 
-#### Running 
-
-	Enter: ./
-	
-	$ bin/c1c "infilename" (infilename means file written in C1 language)
-	
-	or
-	
-	$ bin.c1c -o "outfilename" "infilename"(outputfile means file to be stored for results.if not existing, it will be created)
-	
-	and then you can use `as` and `ld`(**run `as` with --32 and `ld` with -melf_i386 if your OS is 64-bit Ubuntu**) to create an executable file and then execute it.
-
------------------------------------
-
-Xikai Wei ( wxyk@mail.ustc.edu.cn )
-
-School of Computer Science and Technology <br/>
-University of Science and Technology of China <br/>
-Hefei, Anhui, P.R.China <br/>
-JAN.14, 2015
