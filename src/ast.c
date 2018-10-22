@@ -26,7 +26,7 @@ addParatoSymtab(Table ptab,ASTNode paralist)
 	if(!paralist)return;
 	Lnode stmts = paralist->block->stmts->first;
 	Symbol s,s1;
-	while ( stmts!=NULL )  
+	while ( stmts!=NULL )
 	{
 		s = ((ASTNode)(stmts->item))->sym;
 		s1 = setDeclSym(ptab,s->name,s->val,s->type,s->lev+1,s->offset);
@@ -47,7 +47,7 @@ newNumber(int value)
 
 ASTNode
 newName(Table ptab[], char *name)
-{//根据符号表中存储的变量值以及变量名来建立节点
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KName;
@@ -58,7 +58,7 @@ newName(Table ptab[], char *name)
 
 ASTNode
 newPrefixExp(int op, ASTNode exp)
-{//产生前缀式的表达式
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KPrefixExp;
@@ -72,7 +72,7 @@ newPrefixExp(int op, ASTNode exp)
 
 ASTNode
 newParenExp(ASTNode exp)
-{//产生括号表达式
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KParenExp;
@@ -86,7 +86,7 @@ newParenExp(ASTNode exp)
 
 ASTNode
 newInfixExp(int op, ASTNode left, ASTNode right)
-{//产生中缀表达式
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KInfixExp;
@@ -102,7 +102,7 @@ newInfixExp(int op, ASTNode left, ASTNode right)
 
 ASTNode
 newAssignment(int op, ASTNode left, ASTNode right)
-{//产生赋值表达式，实际上使用的还是Exp类型，左操作数是左值，右操作数是表达式
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KAssignExp;
@@ -116,29 +116,6 @@ newAssignment(int op, ASTNode left, ASTNode right)
 }
 
 
-/*ASTNode
-newExpStmt(ASTNode exp)
-{//产生表达式语句的节点，其中参数exp实际上是asgn型的节点，保存在exp这个元素中
-	ASTNode new;
-	NEW0(new);
-	new->kind = KExpStmt;
-	ExpStmt newstmt;
-	NEW0(newstmt);
-	new->estmt = newstmt;
-	newstmt->exp = exp;
-	return new;
-}*/
-
-/*void
-destroyExpStmt(ExpStmt *pnode)
-{
-	if (*pnode == NULL) return;
-	ExpStmt node = *pnode;
-	destroyAST(&node->exp);
-	free(node);
-	*pnode = NULL;
-}*/
-
 ASTNode
 newBlock()
 {
@@ -150,19 +127,14 @@ newBlock()
 	new->block = newb;
 	newb->stmts = newList();
 	NEW0(newb->symtrnode);
-	//debug("blockitem->stmt done1dfadf");
 	newb->symtrnode->symtab = symtablist[lev];
-	//if(newb->symtrnode)debug("ca!!!!!"); ;
 	int levi=lev-1;
 	while(!blocks[levi])levi--;
-	//if((blocks[lev-1])==NULL)debug("caoooooo");
-	//printf("lev= %d\n",lev);
 	newb->symtrnode->parent = (blocks[levi])->block->symtrnode;
 	blocks[lev] = new;
-	//debug("blockitem->stmt done2");	fflush(stdout);
 	return new;
 }
-//diy
+
 ASTNode
 newEmptyStmt()
 {
@@ -252,12 +224,12 @@ newFuncDecl_Pre(Table ptab,char* ident,ASTNode paralist,short type)
 	NEW0(newfunc);
 	newfunc->paralist = paralist;
 	newfunc->funcsym = setDeclSym(ptab,ident,0,type,lev,offset);
-	//递归调用要求必须先将函数名填入符号表
+
 	if(paralist!=NULL)
 		newfunc->funcsym->extra = paralist->block->stmts;
 	else newfunc->funcsym->extra = NULL;
 	new->func = newfunc;
-	
+
 	return new;
 }
 
@@ -291,8 +263,8 @@ newPara(char*name,short type)
 	news->type = type;
 	news->isInitial = FALSE;
 	news->offset = offset;
-	news->lev = 1;//表明不是全局变量
-	news->isPara = TRUE;//表明是形参，在处理数组的时候需要
+	news->lev = 1;
+	news->isPara = TRUE;
 	new->sym = news;
 	return new;
 }
@@ -306,6 +278,7 @@ newCallStmt(ASTNode callnode)
 	new->athnode = callnode;
 	return new;
 }
+
 ASTNode
 newCall(Table ptab,char* ident,ASTNode Realist)
 {
@@ -318,7 +291,7 @@ newCall(Table ptab,char* ident,ASTNode Realist)
 	new->func->funcsym = getFuncSym(ptab, ident);
 	new->func->paralist = Realist;
 	new->func->funcbody = NULL;
-	//debug("call1");
+
 	if(new->func->funcsym==NULL)return new;
 	List l = new->func->funcsym->extra;
 	List lr = NULL;
@@ -331,16 +304,16 @@ newCall(Table ptab,char* ident,ASTNode Realist)
 	}
 	if(NULL == l) l = newList();
 	if(l->size == lr->size)
-	{//debug("call2");
+	{
 		//printf("l->size = %d\n",l->size);
 		Lnode ln = l->first;
 		Lnode lnr = lr->first;
 		short type = 0;
 		ASTNode  para;
 		int size = l->size;
-			
+
 		while(ln!=NULL)
-		{//debug("x");
+		{
 			type = ((ASTNode)(ln->item))->sym->type;
 			para = (ASTNode)(lnr->item);
 			if(NULL!=para->sym)
@@ -355,15 +328,14 @@ newCall(Table ptab,char* ident,ASTNode Realist)
 							else yyerror("the argument is incomptible",para->sym->name);
 						}
 						else if( para->kind==KCall && para->func->funcsym->val==0)
-							yyerror("the argument is incomptible",para->sym->name);	
+							yyerror("the argument is incomptible",para->sym->name);
 						break;
 					case VARN_ID:
 					case CONSTN_ID:
-						//debug("in the KName");
 						if(para->kind == KName)
 						{
 							if(para->sym->type == VARN_ID ||para->sym->type == CONSTN_ID)break;
-						
+
 						}
 						yyerror("the argument is incomptible",para->sym->name);
 						break;
@@ -374,7 +346,7 @@ newCall(Table ptab,char* ident,ASTNode Realist)
 		}
 	}
 	else if(l->size<lr->size)yyerror("too more argument");
-	else yyerror("too few argument"); 
+	else yyerror("too few argument");
 	return new;
 }
 
@@ -410,7 +382,6 @@ newIfElStmt(ASTNode cond,ASTNode body1,ASTNode body2)
 ASTNode
 newWhileStmt(ASTNode cond,ASTNode body)
 {
-	//debug("2.512");
 	ASTNode new;
 	NEW0(new);
 	new->kind = KWhile;
@@ -419,13 +390,12 @@ newWhileStmt(ASTNode cond,ASTNode body)
 	new->cond = newcond;
 	newcond->condition = cond;
 	newcond->body[0] = body;
-	//debug("2.513");	
 	return new;
 }
 
 ASTNode
 newConst(Table ptab,char *name,int val)
-{//根据符号表中存储的变量值以及变量名来建立节点
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KConstN;
@@ -438,14 +408,14 @@ newConst(Table ptab,char *name,int val)
 
 ASTNode
 newConstArray(Table ptab,char *name,ASTNode initials)
-{//根据符号表中存储的变量值以及变量名来建立节点
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KConstArray;
 	Array constinit;
 	NEW0(constinit);
 	constinit->elemtnum = 0;
-	
+
 	constinit->extra = initials;
 	new->arraymem = constinit;
 	Symbol s = setDeclSym(ptab,name,0,CONSTN_ID,lev,offset);
@@ -456,16 +426,15 @@ newConstArray(Table ptab,char *name,ASTNode initials)
 
 ASTNode
 newConstArrayN(Table ptab,char *name,int elemtnum,ASTNode initials)
-{//根据符号表中存储的变量值以及变量名来建立节点
+{
 	ASTNode new;
 	NEW0(new);
 	new->kind = KConstArrayN;
-	//printf("new->kind = %d\n",new->kind);
 	Array constinit;
 	NEW0(constinit);
-	
+
 	constinit->extra = initials;
-	constinit->elemtnum = elemtnum;	
+	constinit->elemtnum = elemtnum;
 	if(elemtnum > (initials->block->stmts->size))
 	{
 		yywarning("too few elements of the initialization list",name);
@@ -475,7 +444,7 @@ newConstArrayN(Table ptab,char *name,int elemtnum,ASTNode initials)
 		yywarning("too more elements of the initialization list",name);
 	}
 	Symbol s = setDeclSym(ptab,name,elemtnum,CONSTN_ID,lev,offset);
-	constinit->s = s;	
+	constinit->s = s;
 	new->arraymem = constinit;
 	ArrayInitial(s,initials);
 	return new;
@@ -567,32 +536,28 @@ destroyBlock(Block *pnode)
 	Block node = *pnode;
 	destroyList(&node->stmts, destroyAST);
 	if(NULL!=node->symtrnode)
-	{//printf("the block's symtrnode is being destoryed\n");fflush(stdout);
-		//dumpTable(node->symtrnode->symtab);
+	{
 		destroyTable(&(node->symtrnode->symtab));
-	//printf("the block's symtrnode has been destroyed\n");fflush(stdout);
 		free(node->symtrnode);
-		
 	}
-	
+
 	free(node);
-		
+
 	*pnode = NULL;
 }
 
-void 
+void
 destroyArray(Array *parray)
 {
 	if(*parray==NULL) return;
 	Array a = *parray;
 	a->s = NULL;
-	//printf("%d\n",a->extra==NULL);
 	destroyAST(&(a->extra));
 	free(a);
 	*parray = NULL;
 }
 
-void 
+void
 destroyInitials(Block *pnode)
 {
 	if(*pnode==NULL)return;
@@ -600,7 +565,7 @@ destroyInitials(Block *pnode)
 	{
 		free(*pnode);
 		*pnode = NULL;
-		return;	
+		return;
 	}
 	Lnode l = (*pnode)->stmts->first;
 	Lnode ln = NULL;
@@ -613,7 +578,7 @@ destroyInitials(Block *pnode)
 	}
 	free((*pnode)->stmts);
 	free(*pnode);
-	*pnode = NULL;//这是主要原因，采用地址传递
+	*pnode = NULL;
 }
 
 void destroyCond(Cond *pnode)
@@ -630,16 +595,13 @@ void destroyFunc(Function *pnode)
 {
 	if(*pnode == NULL) return;
 	destroyAST(&((*pnode)->paralist));
-	//printf("funcdestroy is start half\n");fflush(stdout);
 	destroyAST(&((*pnode)->funcbody));
-	//printf("%s funcdestroy is done\n",(*pnode)->funcsym->name);fflush(stdout);
-	(*pnode)->funcsym = NULL;//这里的符号留到最后销毁，在全局符号表中销毁
+	(*pnode)->funcsym = NULL;
 	free(*pnode);
-	
+
 	*pnode = NULL;
-	
 }
-	
+
 ASTTree
 newAST()
 {
@@ -651,11 +613,9 @@ newAST()
 void
 destroyAST(ASTNode *pnode)
 {
-	
 	if (*pnode == NULL) return;
 	ASTNode node = *pnode;
 	int kind = node->kind;
-	//printf("%d is being destroyed\n",kind);fflush(stdout);
 	switch (kind) {
 	case KVarX:
 	case KConstN:
@@ -665,7 +625,6 @@ destroyAST(ASTNode *pnode)
 	case KBreakStmt:
 	case KContinueStmt:
 	case KPara:
-		//if(kind==KValue)printf("%d\n",node->val);fflush(stdout);
 		break;
 	case KPrefixExp:
 	case KParenExp:
@@ -673,9 +632,6 @@ destroyAST(ASTNode *pnode)
 	case KAssignExp:
 		destroyExp(&node->exp);
 		break;
-	/*case KExpStmt:
-		destroyExpStmt(&node->estmt);
-		break;*/
 	case KBlock:
 	case KProgram:
 	case KConstDecl:
@@ -714,7 +670,6 @@ destroyAST(ASTNode *pnode)
 	default:
 		printf("Unhandled ASTNode kind!\n");
 	}
-	//printf("\n********\nthis node is %d\n*********\n",node->kind);
 	free(node);
 	*pnode = NULL;
 }
@@ -739,15 +694,15 @@ dumpAST(ASTNode node)
 	if(kind!=KBlock)isbb = FALSE;
 	switch (kind) {
 	case KVarDecl:
-	{	
+	{
 		Lnode stmts = node->block->stmts->first;
-		if(stmts!=NULL) 
-		{	
+		if (stmts!=NULL)
+		{
 			printf("int ");
 			dumpAST((ASTNode)stmts->item);
 			stmts = stmts->next;
 		}
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			printf(", ");
 			dumpAST((ASTNode)stmts->item);
@@ -761,7 +716,6 @@ dumpAST(ASTNode node)
 		printf("%s",node->sym->name);
 		break;
 
-
 	case KVarA:
 		printf("%s[%d]",node->arraymem->s->name,node->arraymem->elemtnum);
 		break;
@@ -770,13 +724,13 @@ dumpAST(ASTNode node)
 	case KConstDecl:
 	{
 		Lnode stmts = node->block->stmts->first;
-		if(stmts!=NULL) 
-		{	
+		if(stmts!=NULL)
+		{
 			printf("const int ");
 			dumpAST((ASTNode)stmts->item);
 			stmts = stmts->next;
 		}
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			printf(", ");
 			dumpAST((ASTNode)stmts->item);
@@ -785,7 +739,7 @@ dumpAST(ASTNode node)
 		printf(";\n");
 		break;
 	}
-	
+
 	case KConstN:
 		printf("%s = %d",node->sym->name,node->sym->val);
 		break;
@@ -802,12 +756,12 @@ dumpAST(ASTNode node)
 		{
 			printf("{");
 			Lnode stmts = node->block->stmts->first;
-			if(stmts!=NULL) 
-			{	
+			if(stmts!=NULL)
+			{
 				printf("%d",*((int*)(stmts->item)));
 				stmts = stmts->next;
 			}
-			while ( stmts!=NULL )  
+			while ( stmts!=NULL )
 			{
 				printf(", ");
 				printf("%d",*((int*)(stmts->item)));
@@ -815,11 +769,11 @@ dumpAST(ASTNode node)
 			}
 			printf("}");
 			break;
-		}	
+		}
 	case KArrayQt:
 		printf("%s[",node->arraymem->s->name);
 		dumpAST(node->arraymem->extra);
-		printf("]");		
+		printf("]");
 		break;
 	case KValue:
 		printf("%d", node->val);
@@ -847,10 +801,6 @@ dumpAST(ASTNode node)
 		dumpAST(node->exp->kids[1]);
 		printf(";\n");
 		break;
-	/*case KExpStmt:
-		dumpAST(node->estmt->exp);
-		printf(";");
-		break;*/
 	case KIf:
 		printf("if (");
 		dumpAST(node->cond->condition);
@@ -871,8 +821,7 @@ dumpAST(ASTNode node)
 		printf("while (");
 		dumpAST(node->cond->condition);
 		printf(")\n");
-		//INDENTN(lev+1);	
-		dumpAST(node->cond->body[0]);		
+		dumpAST(node->cond->body[0]);
 		break;
 	case KBreakStmt:
 		printf("break;\n");
@@ -888,7 +837,7 @@ dumpAST(ASTNode node)
 		//printf("%d",node->kind==KCall);fflush(stdout);
 		printf("%s(",node->func->funcsym->name);
 		dumpAST(node->func->paralist);
-		printf(")");		
+		printf(")");
 		break;
 	case KReturnStmt:
 		printf("return ");
@@ -901,7 +850,6 @@ dumpAST(ASTNode node)
 			printf("int %s(",node->func->funcsym->name);
 		else
 			printf("void %s(",node->func->funcsym->name);
-		//printf("%d\n",node->func->paralist->kind==KParaList);
 		dumpAST(node->func->paralist);
 		printf(")\n");
 		dumpAST(node->func->funcbody);
@@ -910,12 +858,12 @@ dumpAST(ASTNode node)
 	case KParaList:
 	{
 			Lnode stmts = node->block->stmts->first;
-			if(stmts!=NULL) 
-			{	
+			if(stmts!=NULL)
+			{
 				dumpAST((ASTNode)(stmts->item));
 				stmts = stmts->next;
 			}
-			while ( stmts!=NULL )  
+			while ( stmts!=NULL )
 			{
 				printf(", ");
 				dumpAST((ASTNode)(stmts->item));
@@ -926,12 +874,12 @@ dumpAST(ASTNode node)
 	case KRealParaList:
 	{
 		Lnode stmts = node->block->stmts->first;
-		if(stmts!=NULL) 
-		{	
+		if(stmts!=NULL)
+		{
 			dumpAST((ASTNode)(stmts->item));
 			stmts = stmts->next;
 		}
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			printf(", ");
 			dumpAST((ASTNode)(stmts->item));
@@ -951,7 +899,7 @@ dumpAST(ASTNode node)
 				printf("paralist has illegal parament!\n");
 		}
 		break;
-	}	
+	}
 	case KBlock:
 	{
 		if(isbb==FALSE)INDENTN(lev);
@@ -963,7 +911,7 @@ dumpAST(ASTNode node)
 		printf("table ends*/\n");
 #endif
 		Lnode stmts = node->block->stmts->first;
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			INDENTN(lev);
 			isbb = TRUE;
@@ -974,7 +922,7 @@ dumpAST(ASTNode node)
 		INDENTN(lev);
 		printf("}\n");
 		break;
-		
+
 	}
 	case KProgram:
 	{
@@ -984,7 +932,7 @@ dumpAST(ASTNode node)
 		printf("table ends*/\n");
 #endif
 		Lnode stmts = node->block->stmts->first;
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			dumpAST((ASTNode)(stmts->item));
 			stmts = stmts->next;
@@ -998,7 +946,6 @@ dumpAST(ASTNode node)
 	default:
 		printf("%dUnhandled ASTNode kind!\n",node->kind);
 	}
-	
 }
 
 
@@ -1008,19 +955,17 @@ gencode(ASTNode node)
 	if (node == NULL) return;
 	int kind = node->kind;
 	switch (kind) {
-	
 	case KVarDecl:
 	break;
 	case KConstDecl:
 	if(blev){
 		Lnode stmts = node->block->stmts->first;
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			gencode((ASTNode)stmts->item);
 			stmts = stmts->next;
 		}
-		
-	}	
+	}
 	break;
 	case KConstN:
 		printf("movl $%d,%d(%%ebp)\n",node->sym->val,-4*node->sym->offset);
@@ -1036,26 +981,26 @@ gencode(ASTNode node)
 		}
 		break;
 	case KName:
-	{	
+	{
 		Symbol s = node->sym;
 		if(s->lev==0)
 		{
 			if(s->type == CONST_ID || s->type == VAR_ID)
 				printf("pushl %s\n",s->name);
-			else 
+			else
 			{
 				printf("leal %s,%%eax\n",s->name);
-				printf("pushl %%eax\n"); 
+				printf("pushl %%eax\n");
 			}
 		}
 		else
-		{	
+		{
 			if(s->type == CONST_ID || s->type == VAR_ID)
 				printf("pushl %d(%%ebp)\n",-4*s->offset);
-			else 
+			else
 			{
 				printf("leal %d(%%ebp),%%eax\n",-4*(s->offset+s->val-1));
-				printf("pushl %%eax\n"); 
+				printf("pushl %%eax\n");
 			}
 		}
 		break;
@@ -1065,7 +1010,7 @@ gencode(ASTNode node)
 		break;
 	case KArrayQt:
 	{
-		Symbol s = node->arraymem->s;		
+		Symbol s = node->arraymem->s;
 		gencode(node->arraymem->extra);
 		printf("popl %%eax\n");
 		if(s->lev==0)
@@ -1079,8 +1024,8 @@ gencode(ASTNode node)
 		}
 		else
 		{
-			printf("pushl %d(%%ebp,%%eax,4)\n",-4*(s->offset+s->val-1));	
-		}	
+			printf("pushl %d(%%ebp,%%eax,4)\n",-4*(s->offset+s->val-1));
+		}
 		break;
 	}
 	case KPrefixExp:
@@ -1096,7 +1041,7 @@ gencode(ASTNode node)
 			printf("popl %%eax\n");
 			printf("testl $1,%%eax\n");
 			printf("jz lab%d\n",labnum);
-		}		
+		}
 		break;
 	case KParenExp:
 		gencode(node->exp->kids[0]);
@@ -1131,13 +1076,13 @@ gencode(ASTNode node)
 		printf("xor %%edx,%%edx\n");
 		printf("idivl %%ebx\n");
 		printf("pushl %%edx\n");
-		break;		
+		break;
 		case OP_EQL:
 		printf("cmpl %%eax,%%ebx\n");
 		printf("jne	lab%d\n",labnum);
 		break;
 		case OP_LEQ:
-		printf("cmpl %%ebx,%%eax\n"); 
+		printf("cmpl %%ebx,%%eax\n");
 		printf("jg	lab%d\n",labnum);
 		break;
 		case OP_NEQ:
@@ -1182,7 +1127,7 @@ gencode(ASTNode node)
 			printf("leal 0(%%ecx,%%ebx,4),%%ecx)\n");
 			printf("movl %%eax,(%%ecx)\n");
 			}
-			else 
+			else
 			{
 			printf("leal %d(%%ebp,%%ebx,4),%%ebx\n",-4*(s->offset+s->val-1));
 			printf("movl %%eax,(%%ebx)\n");
@@ -1194,7 +1139,7 @@ gencode(ASTNode node)
 		else
 			printf("movl %%eax,%d(%%ebp)\n",-4*s->offset);
 		break;
-	}	
+	}
 	case KBreakStmt:
 		printf("jmp lab%d\n",breakdest[wlpdepth-1]);
 		break;
@@ -1215,8 +1160,7 @@ gencode(ASTNode node)
 	{
 		int llab1,llab2;
 		gencode(node->cond->condition);
-		//printf("jz lab%d\n",labnum);
-		llab1 = labnum;		
+		llab1 = labnum;
 		labnum++;
 		gencode(node->cond->body[0]);
 		printf("jmp lab%d\n",labnum);
@@ -1238,7 +1182,7 @@ gencode(ASTNode node)
 		isreturn = TRUE;
 		break;
 	}
-		
+
 	case KWhile:
 	{
 		int llab1,llab2;
@@ -1255,7 +1199,7 @@ gencode(ASTNode node)
 		gencode(node->cond->body[0]);
 		wlpdepth--;
 		printf("jmp lab%d\n",llab1);
-		printf("lab%d:\n",llab2);		
+		printf("lab%d:\n",llab2);
 		break;
 	}
 	case KCallStmt:
@@ -1272,13 +1216,13 @@ gencode(ASTNode node)
 			{
 				gencode((ASTNode)(lt->item));
 				lt = lt->prev;
-			}	
+			}
 		}
 		printf("call %s\n",node->func->funcsym->name);
 		printf("addl $%d,%%esp\n",l->size*4);
 		printf("pushl %%eax\n");
-		break;	
-	}	
+		break;
+	}
 	case KFuncDecl:
 	{
 		Symbol s = node->func->funcsym;
@@ -1307,21 +1251,22 @@ gencode(ASTNode node)
 	{
 		blev++;
 		Lnode stmts = node->block->stmts->first;
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			gencode((ASTNode)(stmts->item));
 			stmts = stmts->next;
 		}
 		blev--;
-		break;	
-	}	
+		break;
+	}
 	case KProgram:
 	{
 		Entry* bk;
 		int i,j;
 		Entry en;
 		printf(".file \"a.c1\"\n");
-		//先产生常量区
+
+		// build const block first
 		printf("\n.section .rodata\n");
 		bk = node->block->symtrnode->symtab->buckets;
 		for(i=0;i<256;i++)
@@ -1332,7 +1277,7 @@ gencode(ASTNode node)
 				{
 					if(en->sym.type == CONST_ID)
 					{
-						printf("\n.globl %s\n",en->sym.name); 
+						printf("\n.globl %s\n",en->sym.name);
 						printf(".align 4\n");
 						printf(".type %s, @object\n",en->sym.name);
 						printf(".size %s, 4\n",en->sym.name);
@@ -1355,7 +1300,7 @@ gencode(ASTNode node)
 				}
 			}
 		}
-		printf("\n.data\n");	
+		printf("\n.data\n");
 		for(i=0;i<256;i++)
 		{
 			if(en = bk[i])
@@ -1364,7 +1309,7 @@ gencode(ASTNode node)
 				{
 					if(en->sym.type == VAR_ID)
 					{
-						printf("\n.globl %s\n",en->sym.name); 
+						printf("\n.globl %s\n",en->sym.name);
 						printf(".align 4\n");
 						printf(".type %s, @object\n",en->sym.name);
 						printf(".size %s, 4\n",en->sym.name);
@@ -1377,23 +1322,21 @@ gencode(ASTNode node)
 					en = en->next;
 				}
 			}
-		}	
+		}
 		printf("\n.text\n");
 		printf(".globl _start\n");
 		printf("_start:\n");
-		printf("call main\nmovl %%eax,%%ebx\nmovl $1,%%eax\nint $0x80\n");								 
+		printf("call main\nmovl %%eax,%%ebx\nmovl $1,%%eax\nint $0x80\n");
 		Lnode stmts = node->block->stmts->first;
-		while ( stmts!=NULL )  
+		while ( stmts!=NULL )
 		{
 			gencode((ASTNode)(stmts->item));
 			stmts = stmts->next;
-			//printf(";\n");
 		}
 		break;
 	}
 	default:
 		printf("%dUnhandled ASTNode kind!\n",node->kind);
 	}
-	
 }
 

@@ -21,8 +21,7 @@ static void
 destroyBucket(Entry *list)
 {
 	Entry node = *list, temp;
-	
-	
+
 	while ( node != NULL ) {
 		//printf("bucket destroy start\n");
 		//printf("%s\n",node->sym.);
@@ -34,7 +33,6 @@ destroyBucket(Entry *list)
 		//printf("bucket destroy ended\n");
 	}
 	*list = NULL;
-	
 }
 
 
@@ -47,7 +45,7 @@ destroyTable(Table *tab)
 	int i=0;
 	if (*tab == NULL)
 		return;
-	
+
 	Entry *bucket = (*tab)->buckets, *bucket_end = (*tab)->buckets+256;
 	while (bucket < bucket_end ) {
 		destroyBucket(bucket);
@@ -64,8 +62,12 @@ lookup(Table ptab, const char *name)
 	Entry pent;
 	unsigned hashkey = (unsigned long)name[0] & (HASHSIZE-1);
 	for (pent = ptab->buckets[hashkey]; pent!=NULL; pent = pent->next)
-		if ( strcmp(name, pent->sym.name) == 0 ) 
+	{
+		if ( strcmp(name, pent->sym.name) == 0 )
+		{
 			return &pent->sym;
+		}
+	}
 	return NULL;
 }
 
@@ -76,13 +78,17 @@ getVal(Table ptab, const char *name)
 	Entry pent;
 	unsigned hashkey = (unsigned long)name[0] & (HASHSIZE-1);
 	for (pent = ptab->buckets[hashkey]; pent!=NULL; pent = pent->next)
-		if ( strcmp(name, pent->sym.name) == 0 ) 
+	{
+		if ( strcmp(name, pent->sym.name) == 0 )
+		{
 			return pent->sym.val;
+		}
+	}
+
 	NEW0(pent);
 	pent->sym.name = (char *)name;
 	pent->sym.val = 0;
-	printf("Warn: %s(%d) was not initialized before, set it 0 as default\n",
-		(char *)name, hashkey);
+	printf("Warn: %s(%d) was not initialized before, set it 0 as default\n", (char *)name, hashkey);
 	pent->next = ptab->buckets[hashkey];
 	ptab->buckets[hashkey] = pent;
 	return 0;
@@ -95,25 +101,18 @@ getSym(Table tablist[], const char *name)
 	Table ptab;
 	int i;
 	unsigned hashkey = (unsigned long)name[0] & (HASHSIZE-1);
-	//printf("lev = %d\n",lev);
 	for(i=lev;i>=0;i--)
 	{
 		ptab = tablist[i];
 		for (pent = ptab->buckets[hashkey]; pent!=NULL; pent = pent->next)
-			if ( strcmp(name, pent->sym.name) == 0 && pent->sym.type != FUNC_ID) 
+		{
+			if ( strcmp(name, pent->sym.name) == 0 && pent->sym.type != FUNC_ID)
 			{
 				//if((type==FUNC_ID || pent->sym.type==FUNC_ID) && pent->sym.type!=type)continue;
 				return &pent->sym;
 			}
+		}
 	}
-	/*printf("%s hasn't been defined, but has been allocated with space.\n",name);
-	NEW0(pent);
-	pent->sym.name = (char *)name;
-	pent->sym.val = 0;
-	pent->sym.isInitial = FALSE;
-	pent->next = ptab->buckets[hashkey];
-	ptab->buckets[hashkey] = pent;
-	return &pent->sym;*/
 	yyerror("hasn't been declared!",name);
 	return NULL;
 }
@@ -124,20 +123,21 @@ getFuncSym(Table ptab, const char *name)
 	Entry pent;
 	unsigned hashkey = (unsigned long)name[0] & (HASHSIZE-1);
 	for (pent = ptab->buckets[hashkey]; pent!=NULL; pent = pent->next)
-		if ( strcmp(name, pent->sym.name) == 0 && pent->sym.type == FUNC_ID) 
-			{
-				//if((type==FUNC_ID || pent->sym.type==FUNC_ID) && pent->sym.type!=type)continue;
-				return &pent->sym;
-			}
+	{
+		if ( strcmp(name, pent->sym.name) == 0 && pent->sym.type == FUNC_ID)
+		{
+			return &pent->sym;
+		}
+	}
 	yyerror("hasn't been declared",name);
 	return NULL;
 }
 
 // Set value of the specified name into the symbolic table
+//type = 0 var;1 const int;4 function;2 var [];3 const []
 Symbol
 setDeclSym(Table ptab, const char *name, int val,short type,int lv,int off)
-{//type = 0 var;1 const int;4 function;2 var [];3 const []
-
+{
 	Entry pent;
 	short type1=0;
 	if(type == FUNC_VOID ||type == FUNC_INT){type1 = type;type=FUNC_ID;}
@@ -157,7 +157,7 @@ setDeclSym(Table ptab, const char *name, int val,short type,int lv,int off)
 	pent->sym.lev = lv;
 	pent->sym.offset = off;
 	switch (type)
-	{	
+	{
 	case VAR_ID:
 		pent->sym.val = 0;//printf("0.%s=%d\n",name,val);
 		pent->sym.isInitial = FALSE;
@@ -180,7 +180,7 @@ setDeclSym(Table ptab, const char *name, int val,short type,int lv,int off)
 		pent->sym.val = val;
 		pent->sym.extrap =NULL;//在另外的地方会初始化
 		break;
-	case FUNC_ID: 
+	case FUNC_ID:
 		pent->sym.val = (type1==FUNC_INT);//printf("4.%s=%d\n",name,val);
 		pent->sym.isInitial = TRUE;
 		pent->sym.extrap =NULL;
@@ -188,10 +188,6 @@ setDeclSym(Table ptab, const char *name, int val,short type,int lv,int off)
 	default:
 		printf("ERROR404\n");
 	}
-/*#if DEBUG
-	printf("create %s(%d) %f\n", (char *)name, 
-		hashkey, val);
-#endif*/
 	pent->next = ptab->buckets[hashkey];
 	ptab->buckets[hashkey] = pent;
 	return &pent->sym;
@@ -206,8 +202,7 @@ setVal(Table ptab, const char *name, int val)
 		if ( strcmp(name, pent->sym.name) == 0 ) {
 			pent->sym.val = val;
 #if DEBUG
-			printf("update %s(%d)  %d\n", 
-				(char *)name, hashkey, val);
+			printf("update %s(%d)  %d\n", (char *)name, hashkey, val);
 #endif
 			return &pent->sym;
 		}
@@ -216,8 +211,7 @@ setVal(Table ptab, const char *name, int val)
 	pent->sym.name = (char *)name;
 	pent->sym.val = val;
 #if DEBUG
-	printf("create %s(%d) %d\n", (char *)name, 
-		hashkey, val);
+	printf("create %s(%d) %d\n", (char *)name, hashkey, val);
 #endif
 	pent->next = ptab->buckets[hashkey];
 	ptab->buckets[hashkey] = pent;
@@ -243,7 +237,6 @@ void ArrayInitial(Symbol sym,ASTNode InitialNumbs)
 		(sym->extrap)[i] = *((int*)(ln->item));
 		ln = ln->next;
 	}
-	
 }
 
 void dumpSym(Symbol s)
@@ -275,7 +268,7 @@ void dumpTable(Table ptab)
 	int i = 0;
 	Entry entry = NULL;
 	printf("name\ttype\tvalue\tisIntl\textrap\n");
-	for(i=0;i<256;i++)	
+	for(i=0;i<256;i++)
 	{
 		entry = ptab->buckets[i];
 		while(entry!=NULL)
@@ -285,12 +278,5 @@ void dumpTable(Table ptab)
 			entry =  entry->next;
 		}
 	}
-
 }
-
-
-
-
-
-
 
